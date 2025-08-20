@@ -162,6 +162,7 @@ class SSHManager {
             const commands = [
                 `mkdir -p ${userDir}`,
                 `mkdir -p ${userDir}/recordings`,
+                `mkdir -p ${userDir}/logos`,
                 `chown -R streaming:streaming ${userDir}`,
                 `chmod -R 755 ${userDir}`
             ];

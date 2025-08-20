@@ -329,7 +329,7 @@ class FTPManager {
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1920, 1080, ?, 'sim', 'ftp')`,
                     [
                         fileName,
-                        `${userLogin}/${folderName}/${sanitizedFileName}`,
+                        relativePath,
                         remotePath,
                         0, // Duração será calculada depois se necessário
                         stats.size,

@@ -197,7 +197,24 @@ class VideoSSHManager {
                         const relativePath = video.path.replace('/home/streaming/', ''); // Garantir formato correto
                         
                         // Verificar se é MP4 e codec compatível para determinar compatibilidade
-                        const isCompatible = video.is_mp4 && (video.formato_original === 'h264' || video.formato_original === 'mp4');
+                        const isMP4 = video.is_mp4;
+                        const codecCompatible = ['h264', 'h265', 'hevc'].includes(video.formato_original?.toLowerCase());
+                        const bitrateExceedsLimit = (video.bitrate_video || 0) > 2500; // Usar limite padrão ou do usuário
+                        
+                        let compatibilityStatus = 'sim';
+                        
+                        // Se não é MP4 ou codec não é H264/H265, precisa conversão
+                        if (!isMP4 || !codecCompatible) {
+                          compatibilityStatus = 'nao';
+                        }
+                        // Se bitrate excede limite, precisa conversão
+                        else if (bitrateExceedsLimit) {
+                          compatibilityStatus = 'nao';
+                        }
+                        // Se é MP4 com H264/H265 e dentro do limite, está otimizado
+                        else if (isMP4 && codecCompatible && !bitrateExceedsLimit) {
+                          compatibilityStatus = 'otimizado';
+                        }
                         
                         await db.execute(
                             `INSERT INTO videos (
@@ -207,7 +224,7 @@ class VideoSSHManager {
                             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, '1920', '1080', ?, ?, ?)`,
                             [
                                 video.nome,
-                                relativePath,
+                                `streaming/${relativePath}`,
                                 video.fullPath,
                                 video.duration,
                                 video.size,
@@ -216,7 +233,7 @@ class VideoSSHManager {
                                 video.bitrate_video || 0,
                                 video.formato_original || 'unknown',
                                 video.is_mp4 ? 1 : 0,
-                                isCompatible ? 'sim' : 'nao',
+                                compatibilityStatus,
                                 video.formato_original || 'unknown'
                             ]
                         );

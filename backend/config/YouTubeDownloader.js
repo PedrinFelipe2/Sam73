@@ -282,7 +282,7 @@ class YouTubeDownloader {
                             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'mp4', 1920, 1080, 1, 'sim', 'youtube')`,
                             [
                                 videoInfo.title,
-                                relativePath,
+                                `streaming/${relativePath}`,
                                 remotePath,
                                 videoInfo.duration,
                                 stats.size,

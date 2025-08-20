@@ -392,25 +392,31 @@ const ConversaoVideos: React.FC = () => {
       return 'Convertendo...';
     }
 
-    // Verificar primeiro o campo compativel do banco
-    if (video.compatibility_status === 'compatible' || video.compatibility_message === 'Compatível') {
-      return 'Compatível';
+    // Lógica atualizada baseada na compatibilidade
+    if (video.compatibility_message === 'Otimizado') {
+      return 'Otimizado';
+    }
+    
+    if (video.compatibility_message === 'Necessário Conversão') {
+      return 'Necessário Conversão';
     }
     
     switch (video.conversion_status) {
       case 'concluida':
-        return 'Convertido';
+        return 'Otimizado';
       case 'em_andamento':
         return 'Convertendo...';
       case 'erro':
         return 'Erro na conversão';
       case 'disponivel':
-        return 'Disponível';
+        return 'Otimizado';
       default:
-        if (video.is_mp4 && video.can_use_current) {
-          return 'MP4 Original';
+        // Verificar se pode usar o vídeo atual
+        if (video.can_use_current && !video.needs_conversion) {
+          return 'Otimizado';
+        } else {
+          return 'Necessário Conversão';
         }
-        return video.needs_conversion ? 'Necessário Conversão' : 'Compatível';
     }
   };
 
@@ -419,9 +425,13 @@ const ConversaoVideos: React.FC = () => {
       return 'text-blue-600';
     }
 
-    // Verificar primeiro o campo compativel do banco
-    if (video.compatibility_status === 'compatible' || video.compatibility_message === 'Compatível') {
+    // Lógica atualizada baseada na compatibilidade
+    if (video.compatibility_message === 'Otimizado') {
       return 'text-green-600';
+    }
+    
+    if (video.compatibility_message === 'Necessário Conversão') {
+      return 'text-red-600';
     }
     
     switch (video.conversion_status) {
@@ -434,10 +444,12 @@ const ConversaoVideos: React.FC = () => {
       case 'disponivel':
         return 'text-green-600';
       default:
-        if (video.is_mp4 && video.can_use_current) {
+        // Verificar se pode usar o vídeo atual
+        if (video.can_use_current && !video.needs_conversion) {
           return 'text-green-600';
+        } else {
+          return 'text-red-600';
         }
-        return video.needs_conversion ? 'text-red-600' : 'text-green-600';
     }
   };
 
@@ -1047,19 +1059,21 @@ const ConversaoVideos: React.FC = () => {
         <div className="flex items-start">
           <AlertCircle className="h-5 w-5 text-blue-600 mr-3 mt-0.5" />
           <div>
-            <h3 className="text-blue-900 font-medium mb-2">🎯 Sistema de Conversão Personalizada</h3>
+            <h3 className="text-blue-900 font-medium mb-2">🎯 Sistema de Otimização de Vídeos</h3>
             <ul className="text-blue-800 text-sm space-y-1">
               <li>• <strong>Todos os vídeos</strong> são listados, independente do formato</li>
               <li>• <strong>Análise automática:</strong> Bitrate, codec e resolução detectados via FFprobe</li>
-              <li>• <strong>Compatibilidade verificada:</strong> Sistema otimizado requer conversão para melhor performance</li>
-              <li>• <strong>Status visual:</strong> Verde (compatível), Vermelho (necessário conversão), Amarelo (bitrate alto)</li>
+              <li>• <strong>Compatibilidade rigorosa:</strong> Apenas MP4 com H264/H265 e bitrate dentro do limite são aceitos</li>
+              <li>• <strong>Status visual:</strong> Verde (Otimizado), Vermelho (Necessário Conversão - não pode usar)</li>
               <li>• <strong>Bitrate personalizado:</strong> Escolha exatamente o kbps que deseja (ex: Full HD com 1000 kbps)</li>
               <li>• <strong>Resolução independente:</strong> Combine qualquer resolução com qualquer bitrate</li>
               <li>• <strong>Otimização inteligente:</strong> Mantenha Full HD com bitrate baixo para economizar espaço</li>
               <li>• <strong>Limite respeitado:</strong> Apenas qualidades dentro do seu plano são permitidas</li>
-              <li>• <strong>Conversão recomendada:</strong> Mesmo vídeos MP4 podem precisar de otimização</li>
+              <li>• <strong>Bloqueio automático:</strong> Vídeos incompatíveis não podem ser reproduzidos</li>
               <li>• <strong>Player HTML5:</strong> Visualização direta de todos os vídeos</li>
               <li>• <strong>Exemplo prático:</strong> Full HD (1920x1080) com 1000 kbps = boa qualidade, arquivo menor</li>
+              <li>• <strong>Formatos aceitos:</strong> Apenas MP4 com codec H264 ou H265</li>
+              <li>• <strong>Bitrate máximo:</strong> Respeitado conforme limite do plano do usuário</li>
             </ul>
           </div>
         </div>

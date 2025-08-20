@@ -264,20 +264,22 @@ router.get('/', authMiddleware, async (req, res) => {
       // Construir URL baseada na estrutura do servidor
       if (!url) {
         // Se não tem URL, construir baseado no nome do arquivo
-        url = `${userLogin}/${folderName}/${video.nome}`;
+        url = `streaming/${userLogin}/${folderName}/${video.nome}`;
       } else {
         // Limpar URL existente
         if (url.startsWith('/home/streaming/')) {
-          url = url.replace('/home/streaming/', '');
+          url = url.replace('/home/streaming/', 'streaming/');
         } else if (url.startsWith('/content/')) {
           url = url.replace('/content/', '');
         } else if (url.startsWith('streaming/')) {
-          url = url.replace('streaming/', '');
+          // Já está no formato correto
         }
         
         // Garantir formato correto: usuario/pasta/arquivo
         if (!url.includes('/')) {
-          url = `${userLogin}/${folderName}/${url}`;
+          url = `streaming/${userLogin}/${folderName}/${url}`;
+        } else if (!url.startsWith('streaming/')) {
+          url = `streaming/${url}`;
         }
         
         // Remover barra inicial se existir
@@ -299,24 +301,40 @@ router.get('/', authMiddleware, async (req, res) => {
       const fileExtension = path.extname(video.nome).toLowerCase();
       const isMP4 = video.is_mp4 === 1;
       const codecCompatible = isCompatibleCodec(video.codec_video) || video.codec_video === 'h264';
-      const formatCompatible = isCompatibleFormat(video.formato_original, fileExtension) || fileExtension === '.mp4';
       
-      // Determinar se precisa de conversão - considerar campo compativel do banco
-      const needsConversion = video.compativel !== 'sim' && (!isMP4 || !codecCompatible || !formatCompatible);
-      
-      // Status de compatibilidade
+      // Lógica de compatibilidade atualizada
+      let needsConversion = false;
       let compatibilityStatus = 'compatible';
-      let compatibilityMessage = 'Compatível';
+      let compatibilityMessage = 'Otimizado';
       
-      if (video.compativel === 'sim') {
-        compatibilityStatus = 'compatible';
-        compatibilityMessage = 'Compatível';
-      } else if (needsConversion) {
+      // Se não é MP4 ou codec não é H264/H265, precisa conversão
+      if (!isMP4 || !codecCompatible) {
+        needsConversion = true;
         compatibilityStatus = 'needs_conversion';
         compatibilityMessage = 'Necessário Conversão';
-      } else if (bitrateExceedsLimit) {
-        compatibilityStatus = 'bitrate_high';
-        compatibilityMessage = 'Bitrate Alto';
+      }
+      // Se bitrate excede limite, precisa conversão
+      else if (bitrateExceedsLimit) {
+        needsConversion = true;
+        compatibilityStatus = 'needs_conversion';
+        compatibilityMessage = 'Necessário Conversão';
+      }
+      // Se é MP4 com H264/H265 e dentro do limite, está otimizado
+      else if (isMP4 && codecCompatible && !bitrateExceedsLimit) {
+        needsConversion = false;
+        compatibilityStatus = 'compatible';
+        compatibilityMessage = 'Otimizado';
+      }
+      
+      // Verificar campo compativel do banco para casos especiais
+      if (video.compativel === 'otimizado') {
+        compatibilityStatus = 'compatible';
+        compatibilityMessage = 'Otimizado';
+        needsConversion = false;
+      } else if (video.compativel === 'nao') {
+        compatibilityStatus = 'needs_conversion';
+        compatibilityMessage = 'Necessário Conversão';
+        needsConversion = true;
       }
       
       return {
@@ -340,7 +358,6 @@ router.get('/', authMiddleware, async (req, res) => {
         compatibility_status: compatibilityStatus,
         compatibility_message: compatibilityMessage,
         codec_compatible: codecCompatible,
-        format_compatible: formatCompatible,
         has_converted_version: video.has_converted_version === 1
       };
     });
@@ -486,7 +503,7 @@ router.post('/upload', authMiddleware, upload.single('video'), async (req, res) 
       console.log(`📂 Estrutura: /home/streaming/${userLogin}/${folderName}/${req.file.filename}`);
 
       // Construir caminho relativo para salvar no banco
-      const relativePath = `${userLogin}/${folderName}/${req.file.filename}`;
+      const relativePath = `streaming/${userLogin}/${folderName}/${req.file.filename}`;
       console.log(`💾 Salvando no banco com path: ${relativePath}`);
       
       // Construir URL de visualização usando novo sistema
@@ -498,11 +515,28 @@ router.post('/upload', authMiddleware, upload.single('video'), async (req, res) 
       // Verificar compatibilidade
       const isMP4 = fileExtension === '.mp4';
       const codecCompatible = isCompatibleCodec(codecVideo);
-      const formatCompatible = isCompatibleFormat(formatoOriginal, fileExtension);
-      const needsConversion = !isMP4 || !codecCompatible || !formatCompatible;
+      const bitrateExceedsLimit = bitrateVideo > (req.user.bitrate || 2500);
       
-      // Status de compatibilidade
-      let compatibilityStatus = (isMP4 && codecCompatible && formatCompatible) ? 'sim' : 'nao';
+      // Lógica de compatibilidade atualizada
+      let needsConversion = false;
+      let compatibilityStatus = 'sim';
+      
+      // Se não é MP4 ou codec não é H264/H265, precisa conversão
+      if (!isMP4 || !codecCompatible) {
+        needsConversion = true;
+        compatibilityStatus = 'nao';
+      }
+      // Se bitrate excede limite, precisa conversão
+      else if (bitrateExceedsLimit) {
+        needsConversion = true;
+        compatibilityStatus = 'nao';
+      }
+      // Se é MP4 com H264/H265 e dentro do limite, está otimizado
+      else if (isMP4 && codecCompatible && !bitrateExceedsLimit) {
+        needsConversion = false;
+        compatibilityStatus = 'otimizado';
+      }
+      
 
       // Salvar na tabela videos SEM conversão automática
       const [result] = await db.execute(
@@ -547,15 +581,15 @@ router.post('/upload', authMiddleware, upload.single('video'), async (req, res) 
       }
 
       // Determinar status de compatibilidade para resposta
-      let statusMessage = 'Vídeo compatível';
+      let statusMessage = 'Otimizado';
       let statusColor = 'green';
       
       if (needsConversion) {
         statusMessage = 'Necessário Conversão';
         statusColor = 'red';
-      } else if (bitrateVideo > userBitrateLimit) {
-        statusMessage = 'Bitrate Alto';
-        statusColor = 'yellow';
+      } else if (compatibilityStatus === 'otimizado') {
+        statusMessage = 'Otimizado';
+        statusColor = 'green';
       }
 
       res.status(201).json({
@@ -616,7 +650,7 @@ router.get('/test/:userId/:folder/:filename', authMiddleware, async (req, res) =
     );
 
     const serverId = serverRows.length > 0 ? serverRows[0].codigo_servidor : 1;
-    const remotePath = `/usr/local/WowzaStreamingEngine/content/${userLogin}/${folder}/${filename}`;
+    const remotePath = `/home/streaming/${userLogin}/${folder}/${filename}`;
 
     try {
       const fileInfo = await SSHManager.getFileInfo(serverId, remotePath);
@@ -627,12 +661,12 @@ router.get('/test/:userId/:folder/:filename', authMiddleware, async (req, res) =
           exists: true,
           path: remotePath,
           info: fileInfo,
-          url: `/content/${userLogin}/${folder}/${filename}`
+          url: `/content/streaming/${userLogin}/${folder}/${filename}`
         });
       } else {
         res.json({
           success: false,
-          url: `/content${relativePath}`,
+          url: `/content/streaming/${userLogin}/${folder}/${filename}`,
           error: 'Arquivo não encontrado no servidor'
         });
       }

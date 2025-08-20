@@ -102,20 +102,25 @@ router.get('/videos', authMiddleware, async (req, res) => {
       
       // Verificar compatibilidade completa
       const isMP4 = video.is_mp4 === 1;
-      const codecCompatible = isCompatibleCodec(video.codec_video);
       const bitrateExceedsLimit = currentBitrate > userBitrateLimit;
+      const codecCompatible = isCompatibleCodec(codecVideo) || 
+                              codecVideo === 'h264' || 
+                              codecVideo === 'h265' || 
+                              codecVideo === 'hevc';
+      const bitrateWithinLimit = bitrateVideo <= userBitrateLimit;
       
-      // Determinar se precisa de conversão - SEMPRE mostrar como necessário para otimização
-      const needsConversion = true; // Sempre mostrar como necessário conversão para otimização
+      // Lógica de compatibilidade atualizada
+      const isFullyCompatible = isMP4 && codecCompatible && bitrateWithinLimit;
+      const needsConversion = !isMP4 || !codecCompatible || !bitrateWithinLimit;
       
       // Status de compatibilidade
-      let compatibilityStatus = 'needs_conversion';
-      let compatibilityMessage = 'Recomendado Otimizar';
-      
-      if (bitrateExceedsLimit) {
-        compatibilityStatus = 'needs_conversion';
+      let compatibilityStatus;
+      let compatibilityMessage;
         compatibilityMessage = 'Necessário Otimizar';
-      } else if (!isMP4 || !codecCompatible) {
+      if (isFullyCompatible) {
+        compatibilityStatus = 'optimized';
+        compatibilityMessage = 'Otimizado';
+      } else if (needsConversion) {
         compatibilityStatus = 'needs_conversion';
         compatibilityMessage = 'Necessário Conversão';
       }
@@ -159,9 +164,7 @@ router.get('/videos', authMiddleware, async (req, res) => {
           bitrate: 0,
           resolution: 'Personalizada',
           canConvert: true,
-          description: 'Configure bitrate e resolução personalizados',
-          customizable: true
-        }
+              } 
       ];
 
       return {
@@ -180,12 +183,12 @@ router.get('/videos', authMiddleware, async (req, res) => {
         bitrate_original: currentBitrate,
         user_bitrate_limit: userBitrateLimit,
         available_qualities: availableQualities,
-        can_use_current: isMP4 && codecCompatible && !bitrateExceedsLimit,
-        needs_conversion: needsConversion,
+        can_use_current: isFullyCompatible,
+        needs_conversion: needsConversion || !isFullyCompatible,
         compatibility_status: compatibilityStatus,
         compatibility_message: compatibilityMessage,
-        conversion_status: 'nao_iniciada', // Sempre mostrar como não iniciada para incentivar otimização
-        folder_name: video.folder_name
+        codec_compatible: codecCompatible && bitrateWithinLimit,
+        format_compatible: isMP4,
       };
     });
 
@@ -303,9 +306,16 @@ router.post('/convert', authMiddleware, async (req, res) => {
 
     // Construir caminho correto no servidor
     let inputPath = video.caminho;
-    if (!inputPath.startsWith('/home/streaming/')) {
-      // Converter para nova estrutura
-      inputPath = `/home/streaming/${userLogin}/${video.folder_name}/${video.nome}`;
+    
+    // Garantir que estamos usando o caminho correto do Wowza
+    if (!inputPath.startsWith('/usr/local/WowzaStreamingEngine/content/')) {
+      if (inputPath.startsWith('/home/streaming/')) {
+        // Converter de streaming para Wowza
+        inputPath = inputPath.replace('/home/streaming/', '/usr/local/WowzaStreamingEngine/content/');
+      } else {
+        // Construir caminho do Wowza
+        inputPath = `/usr/local/WowzaStreamingEngine/content/${userLogin}/${video.folder_name}/${video.nome}`;
+      }
     }
     
     // Verificar se arquivo existe no servidor
@@ -370,7 +380,7 @@ router.post('/convert', authMiddleware, async (req, res) => {
 
     // Construir caminho de saída
     const outputFileName = video.nome.replace(/\.[^/.]+$/, `_${targetBitrate}kbps.mp4`);
-    const outputPath = `/home/streaming/${userLogin}/${video.folder_name}/${outputFileName}`;
+    const outputPath = `/usr/local/WowzaStreamingEngine/content/${userLogin}/${video.folder_name}/${outputFileName}`;
 
 
     // Verificar se conversão já existe
