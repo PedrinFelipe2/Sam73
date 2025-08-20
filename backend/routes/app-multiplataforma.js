@@ -471,7 +471,7 @@ router.post('/notifications', authMiddleware, upload.fields([
 ]), async (req, res) => {
   try {
     const userId = req.user.id;
-    const userLogin = req.user.email ? req.user.email.split('@')[0] : `user_${userId}`;
+    const userLogin = req.user.usuario || `user_${userId}`;
     const { titulo, url_link, mensagem } = req.body;
 
     if (!titulo || !mensagem || !req.files || !req.files['url_icone']) {

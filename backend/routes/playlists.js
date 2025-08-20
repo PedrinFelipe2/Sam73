@@ -240,7 +240,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
 router.post('/generate-smil', authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
-    const userLogin = req.user.email ? req.user.email.split('@')[0] : `user_${userId}`;
+    const userLogin = req.user.usuario || `user_${userId}`;
     
     // Buscar servidor do usuário
     const [serverRows] = await db.execute(

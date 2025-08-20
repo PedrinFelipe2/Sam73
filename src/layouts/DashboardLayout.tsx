@@ -234,6 +234,9 @@ const DashboardLayout: React.FC = () => {
                       {user.tipo === 'revenda' ? 'Revenda' : 'Streaming'}
                     </span>
                   )}
+                  {user?.usuario && (
+                    <div className="text-xs text-gray-500">@{user.usuario}</div>
+                  )}
                 </div>
               </div>
             </div>

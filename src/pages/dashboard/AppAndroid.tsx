@@ -67,7 +67,7 @@ const AppAndroid: React.FC = () => {
   const [fundoFile, setFundoFile] = useState<File | null>(null);
   const [hasExistingApp, setHasExistingApp] = useState(false);
 
-  const userLogin = user?.email?.split('@')[0] || `user_${user?.id || 'usuario'}`;
+  const userLogin = user?.usuario || `user_${user?.id || 'usuario'}`;
   const playerUrl = `http://samhost.wcore.com.br/player-app/${userLogin}`;
 
   useEffect(() => {

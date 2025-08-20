@@ -1061,7 +1061,7 @@ router.post('/folders/:folderId/sync', authMiddleware, async (req, res) => {
   try {
     const folderId = req.params.folderId;
     const userId = req.user.id;
-    const userLogin = req.user.email ? req.user.email.split('@')[0] : `user_${userId}`;
+    const userLogin = req.user.usuario || `user_${userId}`;
 
     // Buscar dados da pasta
     const [folderRows] = await db.execute(

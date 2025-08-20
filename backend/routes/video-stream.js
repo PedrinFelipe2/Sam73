@@ -404,7 +404,7 @@ router.get('/urls/:userLogin/:folderName/:fileName', authMiddleware, async (req,
 router.post('/batch-convert', authMiddleware, async (req, res) => {
     try {
         const userId = req.user.id;
-        const userLogin = req.user.email ? req.user.email.split('@')[0] : `user_${userId}`;
+        const userLogin = req.user.usuario || `user_${userId}`;
         const { video_paths, bitrate, resolution, quality = 'fast' } = req.body;
 
         if (!video_paths || !Array.isArray(video_paths) || video_paths.length === 0) {
@@ -494,10 +494,10 @@ router.delete('/cleanup/:userLogin', authMiddleware, async (req, res) => {
     try {
         const { userLogin } = req.params;
         const userId = req.user.id;
-        const userEmail = req.user.email ? req.user.email.split('@')[0] : `user_${userId}`;
+        const userLoginAuth = req.user.usuario || `user_${userId}`;
 
         // Verificar se usuário tem acesso
-        if (userLogin !== userEmail) {
+        if (userLogin !== userLoginAuth) {
             return res.status(403).json({ error: 'Acesso negado' });
         }
 

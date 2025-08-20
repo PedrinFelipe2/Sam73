@@ -173,7 +173,7 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const userLogin = user?.email ? user.email.split('@')[0] : '';
+  const userLogin = user?.usuario || `user_${user?.id || 'usuario'}`;
 
   const checkOBSStatus = async () => {
     try {

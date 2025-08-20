@@ -371,7 +371,7 @@ router.post('/start', authMiddleware, async (req, res) => {
     } = req.body;
 
     const userId = req.user.id;
-    const userLogin = req.user.email.split('@')[0];
+    const userLogin = req.user.usuario || `user_${userId}`;
 
     if (!titulo || !playlist_id) {
       return res.status(400).json({ success: false, error: 'Título e playlist são obrigatórios' });

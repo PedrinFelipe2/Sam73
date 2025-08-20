@@ -95,7 +95,7 @@ const AppMultiplataforma: React.FC = () => {
     mensagem: ''
   });
 
-  const userLogin = user?.email?.split('@')[0] || `user_${user?.id || 'usuario'}`;
+  const userLogin = user?.usuario || `user_${user?.id || 'usuario'}`;
   const playerUrl = `http://samhost.wcore.com.br/player-app-multi-plataforma/${userLogin}`;
 
   useEffect(() => {

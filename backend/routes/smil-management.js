@@ -186,8 +186,8 @@ router.get('/content/:userLogin', authMiddleware, async (req, res) => {
         const userId = req.user.id;
         
         // Verificar se usuário tem acesso
-        const userEmail = req.user.email ? req.user.email.split('@')[0] : `user_${userId}`;
-        if (userLogin !== userEmail && req.user.tipo !== 'revenda') {
+        const userLoginAuth = req.user.usuario || `user_${userId}`;
+        if (userLogin !== userLoginAuth && req.user.tipo !== 'revenda') {
             return res.status(403).json({
                 success: false,
                 error: 'Acesso negado'

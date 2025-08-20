@@ -35,7 +35,7 @@ const Players: React.FC = () => {
   const [liveStreamActive, setLiveStreamActive] = useState(false);
   const [obsStreamActive, setObsStreamActive] = useState(false);
 
-  const userLogin = user?.email?.split('@')[0] || `user_${user?.id || 'usuario'}`;
+  const userLogin = user?.usuario || `user_${user?.id || 'usuario'}`;
   const liveStreamUrl = `http://samhost.wcore.com.br:1935/samhost/${userLogin}_live/playlist.m3u8`;
 
   useEffect(() => {

@@ -161,7 +161,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
 
     // Atualizar arquivo SMIL do usuário após remover agendamento
     try {
-      const userLogin = req.user.usuario || req.user.email?.split('@')[0] || `user_${req.user.id}`;
+      const userLogin = req.user.usuario || `user_${req.user.id}`;
       const [serverRows] = await db.execute(
         'SELECT codigo_servidor FROM streamings WHERE codigo_cliente = ? LIMIT 1',
         [req.user.id]

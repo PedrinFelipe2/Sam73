@@ -323,6 +323,25 @@ class VideoSSHManager {
         }
         return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     }
+
+    // Obter login do usuário
+    async getUserLogin(userId) {
+        try {
+            const [userRows] = await db.execute(
+                'SELECT usuario FROM streamings WHERE codigo_cliente = ? LIMIT 1',
+                [userId]
+            );
+
+            if (userRows.length > 0 && userRows[0].usuario) {
+                return userRows[0].usuario;
+            }
+
+            return `user_${userId}`;
+        } catch (error) {
+            console.error('Erro ao obter login do usuário:', error);
+            return `user_${userId}`;
+        }
+    }
     async downloadVideoToTemp(serverId, remotePath, videoId) {
         try {
             // Verificar se já está sendo baixado

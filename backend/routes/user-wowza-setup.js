@@ -228,7 +228,7 @@ router.get('/urls/:folderName/:fileName', authMiddleware, async (req, res) => {
     try {
         const { folderName, fileName } = req.params;
         const userId = req.user.id;
-        const userLogin = req.user.email ? req.user.email.split('@')[0] : `user_${userId}`;
+        const userLogin = req.user.usuario || `user_${userId}`;
 
         // Buscar servidor do usuário
         const [serverRows] = await db.execute(

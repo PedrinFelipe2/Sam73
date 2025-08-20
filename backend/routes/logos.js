@@ -169,7 +169,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     const logoId = req.params.id;
     const userId = req.user.id;
-    const userLogin = req.user.usuario || req.user.email?.split('@')[0] || `user_${userId}`;
+    const userLogin = req.user.usuario || `user_${userId}`;
 
     // Buscar logo
     const [logoRows] = await db.execute(

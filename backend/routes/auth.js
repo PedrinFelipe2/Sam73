@@ -161,7 +161,7 @@ router.get('/me', async (req, res) => {
           s.codigo_cliente,
           s.codigo_servidor
          FROM streamings s 
-         WHERE s.codigo = ?`,
+         WHERE s.codigo_cliente = ?`,
         [decoded.userId]
       );
     }

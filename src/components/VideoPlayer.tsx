@@ -44,7 +44,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const userLogin = user?.email?.split('@')[0] || `user_${user?.id || 'usuario'}`;
+  const userLogin = user?.usuario || `user_${user?.id || 'usuario'}`;
 
   useEffect(() => {
     checkOBSStream();

@@ -116,12 +116,12 @@ class VideoURLBuilder {
 
             // Buscar login do usuário
             const [userRows] = await db.execute(
-                'SELECT email, usuario FROM streamings WHERE codigo_cliente = ? LIMIT 1',
+                'SELECT usuario FROM streamings WHERE codigo_cliente = ? LIMIT 1',
                 [userId]
             );
 
-            const userLogin = userRows.length > 0 ? 
-                (userRows[0].usuario || userRows[0].email?.split('@')[0] || `user_${userId}`) :
+            const userLogin = userRows.length > 0 && userRows[0].usuario ? 
+                userRows[0].usuario : 
                 `user_${userId}`;
 
             // Construir URL

@@ -395,17 +395,17 @@ class PlaylistSMILService {
             const [userRows] = await db.execute(
                 `SELECT DISTINCT 
                     s.codigo_cliente as user_id,
-                    s.email,
+                    s.usuario,
                     s.codigo_servidor
                  FROM streamings s 
-                 WHERE s.status = 1 AND s.email IS NOT NULL`
+                 WHERE s.status = 1 AND s.usuario IS NOT NULL`
             );
 
             const results = [];
 
             for (const user of userRows) {
                 try {
-                    const userLogin = user.email.split('@')[0];
+                    const userLogin = user.usuario;
                     const serverId = user.codigo_servidor || 1;
 
                     const result = await this.generateUserSMIL(user.user_id, userLogin, serverId);
@@ -416,9 +416,9 @@ class PlaylistSMILService {
                         result: result
                     });
                 } catch (userError) {
-                    console.error(`Erro ao processar usuário ${user.email}:`, userError);
+                    console.error(`Erro ao processar usuário ${user.usuario}:`, userError);
                     results.push({
-                        user_login: user.email?.split('@')[0] || 'unknown',
+                        user_login: user.usuario || 'unknown',
                         user_id: user.user_id,
                         result: { success: false, error: userError.message }
                     });

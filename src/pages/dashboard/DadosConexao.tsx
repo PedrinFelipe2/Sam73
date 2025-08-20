@@ -65,7 +65,7 @@ const DadosConexao: React.FC = () => {
     canStream: boolean;
   }>({ isValid: true, message: '', canStream: true });
 
-  const userLogin = user?.email?.split('@')[0] || `user_${user?.id || 'usuario'}`;
+  const userLogin = user?.usuario || `user_${user?.id || 'usuario'}`;
 
   useEffect(() => {
     loadOBSConfig();

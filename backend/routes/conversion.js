@@ -274,7 +274,7 @@ router.get('/qualities', authMiddleware, async (req, res) => {
 router.post('/convert', authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
-    const userLogin = req.user.email ? req.user.email.split('@')[0] : `user_${userId}`;
+    const userLogin = req.user.usuario || `user_${userId}`;
     const { video_id, quality, custom_bitrate, custom_resolution, use_custom } = req.body;
 
     if (!video_id) {

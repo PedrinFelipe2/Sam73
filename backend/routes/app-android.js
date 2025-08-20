@@ -258,7 +258,7 @@ router.put('/configure', authMiddleware, upload.fields([
 ]), async (req, res) => {
   try {
     const userId = req.user.id;
-    const userLogin = req.user.email ? req.user.email.split('@')[0] : `user_${userId}`;
+    const userLogin = req.user.usuario || `user_${userId}`;
     
     const {
       app_email, app_whatsapp, app_url_facebook, app_url_instagram,

@@ -472,12 +472,12 @@ class FTPManager {
     async getUserLogin(userId) {
         try {
             const [userRows] = await db.execute(
-                'SELECT email, usuario FROM streamings WHERE codigo_cliente = ? LIMIT 1',
+                'SELECT usuario FROM streamings WHERE codigo_cliente = ? LIMIT 1',
                 [userId]
             );
 
-            if (userRows.length > 0) {
-                return userRows[0].usuario || userRows[0].email?.split('@')[0] || `user_${userId}`;
+            if (userRows.length > 0 && userRows[0].usuario) {
+                return userRows[0].usuario;
             }
 
             return `user_${userId}`;
