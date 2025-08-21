@@ -627,7 +627,7 @@ router.delete('/:videoId', authMiddleware, async (req, res) => {
 router.post('/sync-database', authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
-    const userLogin = req.user.email ? req.user.email.split('@')[0] : `user_${userId}`;
+    const userLogin = req.user.usuario || `user_${userId}`;
     const { folderId } = req.body;
 
     if (!folderId) {
