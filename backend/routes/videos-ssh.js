@@ -794,7 +794,7 @@ router.put('/:videoId/rename', authMiddleware, async (req, res) => {
     const videoId = req.params.videoId;
     const { novo_nome } = req.body;
     const userId = req.user.id;
-    const userLogin = req.user.usuario || `user_${userId}`;
+    const userLogin = req.user.email ? req.user.email.split('@')[0] : `user_${userId}`;
 
     if (!novo_nome) {
       return res.status(400).json({ error: 'Novo nome é obrigatório' });
@@ -889,7 +889,7 @@ router.put('/rename-by-path/:videoId', authMiddleware, async (req, res) => {
     const videoId = req.params.videoId;
     const { novo_nome } = req.body;
     const userId = req.user.id;
-    const userLogin = req.user.usuario || `user_${userId}`;
+    const userLogin = req.user.email ? req.user.email.split('@')[0] : `user_${userId}`;
 
     if (!novo_nome) {
       return res.status(400).json({ error: 'Novo nome é obrigatório' });
